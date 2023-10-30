@@ -31,6 +31,10 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // view 속성은 이미 상위의 UIViewController에서 정의되어있음으로 자동상속
         // 기본적으로 view 가 깔려있음 (viewController내부에는 항상 백그라운드에 존재)
         
+        // Responder의 이해 : UIResponder 을 상속한 것이 UIView => UIControl => UITextField
+        // becomeFirstResponder() : UIResponder 에서 구현된 메서드 => 응답객체(textField)가 바로 발생하는 메서드
+        textField.becomeFirstResponder()
+        // UIWindow => 터치나 화면입력을 받아들이는 객체 => first 응답객체를 지정해줌 => textField가 첫번째 응답객체가 되면 키보드가 자동으로 올라온다
         textField.keyboardType = UIKeyboardType.emailAddress
         // 타입을 확인하고(옵셔널 + 클릭) 맞는 타입을 대입하고 점 접근자로 선택해보고 찾아봄
         textField.placeholder = "이메일 주소를 입력하세요"
@@ -40,6 +44,15 @@ class ViewController: UIViewController, UITextFieldDelegate {
         textField.returnKeyType = .go
         // 키보드의 return(화살표) 부분 설정 선택속성(한영차이 있음)
     }
+    
+    // 화면이 터치되면 키보드가 자동으로 내려가도록 구현
+    // 이미 UIViewController에 touchedsBegan 이 구현되어 있음 => 재정의
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+        // 동일하게 동작하는 코드
+        // textField.resignFirstResponder()
+    }
+    
     
     // textField라고 치면 찾을 수 있음(필수요구사항은 아닌 추가요구사항임_프로토콜)
     
@@ -67,23 +80,42 @@ class ViewController: UIViewController, UITextFieldDelegate {
         // print(string)
         // print(#function)
         // 이미 만들어져있는 string 파라미터 사용
-        /*
-         아래와 같은 10글자 제한 + 숫자입력 막는 코드
-         if Int(string) != nil {
-            return false
-         } else {
-            guard let text = textField.text else { return true }
-            let newLength = text.count + string.count - range.length
-            return newLength <= 10
-         }
-         */
-        // 이런 코드 하나하나에 집착하지 말것
-        let maxLength = 10
-        let currentString = (textField.text ?? "") as NSString
-        let newString = currentString.replacingCharacters(in: range, with: string)
+        
+        // 영어만 입력가능하도록 구현하는 코드
+        var characterSet = CharacterSet()
+        characterSet.formUnion(.lowercaseLetters) // e.g. a,b,c..
+        characterSet.formUnion(.uppercaseLetters) // e.g. A,B,C..
+        characterSet.formUnion(.decimalDigits) // e.g. 1,2,3
+        characterSet.formUnion(.whitespaces) // " "
+        characterSet.insert(charactersIn: "@,&:-") // Specific Characters
 
-        return newString.count <= maxLength
-        // 입력조건을 작성하여 true, false 설정가능
+        let invertedCharacterSet = characterSet.inverted
+        let components = string.components(separatedBy: invertedCharacterSet)
+        let filtered = components.joined(separator: "")
+        if string == filtered {
+            
+            /*
+             아래와 같은 10글자 제한 + 숫자입력 막는 코드
+             if Int(string) != nil {
+             return false
+             } else {
+             guard let text = textField.text else { return true }
+             let newLength = text.count + string.count - range.length
+             return newLength <= 10
+             }
+             */
+            // 이런 코드 하나하나에 집착하지 말것
+            let maxLength = 10
+            let currentString = (textField.text ?? "") as NSString
+            let newString = currentString.replacingCharacters(in: range, with: string)
+            
+            return newString.count <= maxLength
+            // 입력조건을 작성하여 true, false 설정가능
+        } else {
+            return false
+        }
+        
+        
        
     }
     
@@ -113,7 +145,8 @@ class ViewController: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func doneButtonTapped(_ sender: UIButton) {
-        
+        textField.resignFirstResponder()
+        // 키보드를 자동으로 내림
     }
     
 
