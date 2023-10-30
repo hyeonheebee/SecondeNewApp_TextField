@@ -64,12 +64,27 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     // 텍스트필드에 입력값이 있는 순간 호출되고 입력 허락여부도 결정가능한 메서드
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        print(string)
-        print(#function)
+        // print(string)
+        // print(#function)
         // 이미 만들어져있는 string 파라미터 사용
-        
+        /*
+         아래와 같은 10글자 제한 + 숫자입력 막는 코드
+         if Int(string) != nil {
+            return false
+         } else {
+            guard let text = textField.text else { return true }
+            let newLength = text.count + string.count - range.length
+            return newLength <= 10
+         }
+         */
+        // 이런 코드 하나하나에 집착하지 말것
+        let maxLength = 10
+        let currentString = (textField.text ?? "") as NSString
+        let newString = currentString.replacingCharacters(in: range, with: string)
+
+        return newString.count <= maxLength
         // 입력조건을 작성하여 true, false 설정가능
-        return true
+       
     }
     
     // 텍스트필드의 엔터키 누른 후 동작 허락여부를 결정하는 메서드
@@ -94,6 +109,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     func textFieldDidEndEditing(_ textField: UITextField) {
         print(#function)
         print("유저가 입력을 끝냈습니다. DidEndEditing 메서드가 호출되었습니다.")
+        textField.text = ""
     }
     
     @IBAction func doneButtonTapped(_ sender: UIButton) {
